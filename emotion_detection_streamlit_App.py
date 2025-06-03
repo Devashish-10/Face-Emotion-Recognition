@@ -6,8 +6,7 @@ import cv2
 import os
 import gdown
 
-st.set_page_config(page_title="Emotion Recognition", layout="centered")  # <-- move this here
-
+st.set_page_config(page_title="Emotion Recognition", layout="centered")  
 # Constants
 FILE_ID = "1zf_QFU0noobNYSmqOroqM1qbrE-WPXiJ"
 MODEL_PATH = "emotion_classifier_inception.h5"
@@ -29,7 +28,7 @@ download_model_from_gdrive(FILE_ID, MODEL_PATH)
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-IMG_HEIGHT, IMG_WIDTH = 150, 150
+IMG_HEIGHT, IMG_WIDTH = 224,224
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # ---- IMAGE PREPROCESSING ----
