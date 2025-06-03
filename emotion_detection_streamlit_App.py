@@ -37,7 +37,7 @@ def save_response_content(response, destination, chunk_size=32768):
 
 # ---- MODEL LOADING ----
 MODEL_PATH = "emotion_classifier_inception.h5"
-GDRIVE_FILE_ID = "1ipZOrL6XvFQj8ibRmVs5MQ7mHI4fOEf-"
+GDRIVE_FILE_ID = "17iEc-3OtXclucyxpe-cLR1ePfquqDPRZ/"
 
 if not os.path.exists(MODEL_PATH):
     with st.spinner("Downloading model..."):
