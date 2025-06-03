@@ -1,3 +1,4 @@
+streamlit_webrtc
 streamlit
 tensorflow
 opencv-python
