@@ -9,14 +9,12 @@ import time
 from io import BytesIO
 import gdown
 
-
 #  Must be first Streamlit call
-st.set_page_config(page_title="Face Emotion Detection System", layout="centered")
+st.set_page_config(page_title="Face Emotion Detection", layout="centered")
 
 # Constants
-FILE_ID = "17iEc-3OtXclucyxpe-cLR1ePfquqDPRZ"
+FILE_ID = "1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk"
 MODEL_PATH = "emotion_classifier_inception.h5"
-img_height, img_width = 150, 150
 
 # Download model if not present
 if not os.path.exists(MODEL_PATH):
@@ -25,20 +23,6 @@ if not os.path.exists(MODEL_PATH):
 
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH)
-
-# ---- MODEL LOADING ----
-MODEL_PATH = "emotion_classifier_inception.h5"
-GDRIVE_FILE_ID = "17iEc-3OtXclucyxpe-cLR1ePfquqDPRZ"
-
-if not os.path.exists(MODEL_PATH):
-    with st.spinner("Downloading model..."):
-        try:
-            download_file_from_google_drive(GDRIVE_FILE_ID, MODEL_PATH)
-            time.sleep(1)  # Wait a bit before loading
-        except Exception as e:
-            st.error(f"Failed to download model: {e}")
-            st.stop()
-# ---- CONSTANTS ----
 IMG_HEIGHT, IMG_WIDTH = 224, 224
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
