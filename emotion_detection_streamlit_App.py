@@ -20,7 +20,7 @@ if not os.path.exists(MODEL_PATH):
 
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH)
-IMG_HEIGHT, IMG_WIDTH = 224, 224
+IMG_HEIGHT, IMG_WIDTH = 150,150
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # ---- IMAGE PREPROCESSING ----
