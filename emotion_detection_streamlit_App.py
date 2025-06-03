@@ -1,35 +1,113 @@
-import gdown
+import streamlit as st
+import numpy as np
 import tensorflow as tf
+from PIL import Image
+import cv2
 import os
+import requests
+import time
+from io import BytesIO
 
-# Google Drive file ID and output path
+# ---- HELPER: Download large files from Google Drive (handles confirmation token) ----
+def download_file_from_google_drive(id, destination):
+    URL = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(URL, params={'id': id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+
+    save_response_content(response, destination)    
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+    return None
+
+def save_response_content(response, destination, chunk_size=32768):
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(chunk_size):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+
+# ---- MODEL LOADING ----
+MODEL_PATH = "emotion_classifier_inception.h5"
 GDRIVE_FILE_ID = "1ipZOrL6XvFQj8ibRmVs5MQ7mHI4fOEf-"
-MODEL_PATH = "model.h5"
 
-def download_model_from_gdrive(file_id, output_path):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    if os.path.exists(output_path):
-        print(f"Model already downloaded at {output_path}")
-        return
-    print("Downloading model from Google Drive...")
-    gdown.download(url, output_path, quiet=False)
-    if not os.path.exists(output_path):
-        raise FileNotFoundError(f"Failed to download the model to {output_path}")
+if not os.path.exists(MODEL_PATH):
+    with st.spinner("Downloading model..."):
+        try:
+            download_file_from_google_drive(GDRIVE_FILE_ID, MODEL_PATH)
+            time.sleep(1)  # Wait a bit before loading
+        except Exception as e:
+            st.error(f"Failed to download model: {e}")
+            st.stop()
 
-def load_keras_model(model_path):
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
-    print(f"Loading model from {model_path}...")
-    try:
-        model = tf.keras.models.load_model(model_path)
-        print("Model loaded successfully!")
-        return model
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        raise
+# Try loading the model, catch errors related to corrupt/incomplete files
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+except (OSError, IOError) as e:
+    st.error(f"Failed to load model file. It might be corrupted or incomplete.\n{e}")
+    st.stop()
 
-if __name__ == "__main__":
-    download_model_from_gdrive(GDRIVE_FILE_ID, MODEL_PATH)
-    model = load_keras_model(MODEL_PATH)
+# ---- CONSTANTS ----
+IMG_HEIGHT, IMG_WIDTH = 224, 224
+class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
-    # Now you can use `model` to predict or whatever your app needs
+# ---- IMAGE PREPROCESSING ----
+def preprocess_image(image: Image.Image):
+    image = image.resize((IMG_WIDTH, IMG_HEIGHT))
+    img_array = tf.keras.utils.img_to_array(image)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    return img_array
+
+def predict_emotion(image: Image.Image):
+    img_array = preprocess_image(image)
+    preds = model.predict(img_array)
+    predicted_class = np.argmax(preds, axis=1)[0]
+    label = class_labels[predicted_class]
+    return label
+
+# ---- STREAMLIT UI ----
+st.set_page_config(page_title="Emotion Recognition", layout="centered")
+st.title("Emotion Recognition System")
+st.markdown("### Detect the emotion from an image using a trained InceptionV3 model.")
+
+tab1, tab2 = st.tabs(["Upload Image", "Use Webcam (Local Only)"])
+
+with tab1:
+    st.subheader("Upload an Image")
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file).convert("RGB")
+        st.image(image, caption="Uploaded Image", use_column_width=True)
+        label = predict_emotion(image)
+        st.markdown(f"### Prediction: `{label}`")
+
+with tab2:
+    st.warning(" Webcam access works only in local mode. Streamlit Cloud does not support it.")
+    run = st.checkbox('Start Webcam')
+    FRAME_WINDOW = st.image([])
+
+    if run:
+        camera = cv2.VideoCapture(0)
+        if not camera.isOpened():
+            st.error("Could not access webcam.")
+        else:
+            while run:
+                ret, frame = camera.read()
+                if not ret:
+                    st.error("Failed to read from webcam.")
+                    break
+                img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_img = Image.fromarray(img_rgb)
+                label = predict_emotion(pil_img)
+                cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                FRAME_WINDOW.image(frame, channels="BGR")
+            camera.release()
+            cv2.destroyAllWindows()
