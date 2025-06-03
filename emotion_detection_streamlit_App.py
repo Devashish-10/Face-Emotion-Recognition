@@ -6,6 +6,8 @@ import cv2
 import os
 import gdown
 
+st.set_page_config(page_title="Emotion Recognition", layout="centered")  # <-- move this here
+
 # Constants
 FILE_ID = "1zf_QFU0noobNYSmqOroqM1qbrE-WPXiJ"
 MODEL_PATH = "emotion_classifier_inception.h5"
@@ -45,8 +47,6 @@ def predict_emotion(image: Image.Image):
     return label
 
 # ---- STREAMLIT UI ----
-st.set_page_config(page_title="Emotion Recognition", layout="centered")
-
 st.title("Emotion Recognition System")
 st.markdown("### Detect the emotion from an image using a trained InceptionV3 model.")
 
