@@ -19,7 +19,8 @@ if not os.path.exists(MODEL_PATH):
         gdown.download(f"https://drive.google.com/uc?id={FILE_ID}", MODEL_PATH, quiet=False)
 
 # Load the trained model
-model = tf.keras.models.load_model(MODEL_PATH)
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+
 IMG_HEIGHT, IMG_WIDTH = 150,150
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
