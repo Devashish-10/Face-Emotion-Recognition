@@ -32,10 +32,16 @@ def download_file_from_google_drive(id, destination):
             os.remove(destination)
             raise ValueError("Downloaded file is not a valid HDF5 model. Likely a Google Drive warning page.")
 
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+    return None
+
 def save_response_content(response, destination, chunk_size=32768):
     with open(destination, "wb") as f:
         for chunk in response.iter_content(chunk_size):
-            if chunk:  # filter out keep-alive new chunks
+            if chunk:
                 f.write(chunk)
 
 # ---- MODEL LOADING ----
