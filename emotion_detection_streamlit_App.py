@@ -9,9 +9,6 @@ import time
 from io import BytesIO
 import gdown
 
-#  Must be first Streamlit call
-st.set_page_config(page_title="Face Emotion Detection", layout="centered")
-
 # Constants
 FILE_ID = "1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk"
 MODEL_PATH = "emotion_classifier_inception.h5"
