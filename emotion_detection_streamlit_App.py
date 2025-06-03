@@ -4,25 +4,30 @@ import tensorflow as tf
 from PIL import Image
 import cv2
 import os
-import requests
-import time
-from io import BytesIO
 import gdown
 
 # Constants
 FILE_ID = "1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk"
 MODEL_PATH = "emotion_classifier_inception.h5"
 
-# Download model if not present
-if not os.path.exists(MODEL_PATH):
-    with st.spinner("Downloading model..."):
-        gdown.download("https://drive.google.com/uc?export=download&id=1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk", MODEL_PATH, quiet=False)
+def download_model_from_gdrive(file_id: str, output_path: str):
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    if not os.path.exists(output_path):
+        with st.spinner("Downloading model..."):
+            gdown.download(url, output_path, quiet=False)
+        if os.path.exists(output_path):
+            size_mb = os.path.getsize(output_path) / (1024 * 1024)
+            st.success(f"Model downloaded successfully ({size_mb:.2f} MB).")
+        else:
+            st.error("Failed to download model.")
 
+# Download the model if not already present
+download_model_from_gdrive(FILE_ID, MODEL_PATH)
 
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-IMG_HEIGHT, IMG_WIDTH = 150,150
+IMG_HEIGHT, IMG_WIDTH = 150, 150
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # ---- IMAGE PREPROCESSING ----
@@ -41,6 +46,7 @@ def predict_emotion(image: Image.Image):
 
 # ---- STREAMLIT UI ----
 st.set_page_config(page_title="Emotion Recognition", layout="centered")
+
 st.title("Emotion Recognition System")
 st.markdown("### Detect the emotion from an image using a trained InceptionV3 model.")
 
@@ -56,7 +62,7 @@ with tab1:
         st.markdown(f"### Prediction: `{label}`")
 
 with tab2:
-    st.warning(" Webcam access works only in local mode. Streamlit Cloud does not support it.")
+    st.warning("Webcam access works only in local mode. Streamlit Cloud does not support it.")
     run = st.checkbox('Start Webcam')
     FRAME_WINDOW = st.image([])
 
