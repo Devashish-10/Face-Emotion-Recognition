@@ -10,8 +10,9 @@ from io import BytesIO
 
 # ---- HELPER: Download large files from Google Drive (handles confirmation token) ----
 def download_file_from_google_drive(id, destination):
-    URL = "https://docs.google.com/uc?export=download"
+    import requests
 
+    URL = "https://docs.google.com/uc?export=download"
     session = requests.Session()
 
     response = session.get(URL, params={'id': id}, stream=True)
@@ -21,13 +22,15 @@ def download_file_from_google_drive(id, destination):
         params = {'id': id, 'confirm': token}
         response = session.get(URL, params=params, stream=True)
 
-    save_response_content(response, destination)    
+    # Save the file temporarily
+    save_response_content(response, destination)
 
-def get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            return value
-    return None
+    # Verify: Check if it starts with the HDF5 file signature (should start with 0x89 HDF)
+    with open(destination, 'rb') as f:
+        file_start = f.read(4)
+        if file_start != b'\x89HDF':
+            os.remove(destination)
+            raise ValueError("Downloaded file is not a valid HDF5 model. Likely a Google Drive warning page.")
 
 def save_response_content(response, destination, chunk_size=32768):
     with open(destination, "wb") as f:
