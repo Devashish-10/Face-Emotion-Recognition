@@ -7,7 +7,7 @@ import os
 import gdown
 
 # Constants
-FILE_ID = "1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk"
+FILE_ID = "1zf_QFU0noobNYSmqOroqM1qbrE-WPXiJ"
 MODEL_PATH = "emotion_classifier_inception.h5"
 
 def download_model_from_gdrive(file_id: str, output_path: str):
