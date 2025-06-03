@@ -20,7 +20,7 @@ def download_model_from_gdrive(file_id, dest_path):
         st.stop()
 
 MODEL_PATH = "emotion_classifier_inception.h5"
-GDRIVE_FILE_ID = "1ipZOrL6XvFQj8ibRmVs5MQ7mHI4fOEf"  
+GDRIVE_FILE_ID = "1ipZOrL6XvFQj8ibRmVs5MQ7mHI4fOEf-"  
 
 if not os.path.exists(MODEL_PATH):
     with st.spinner("Downloading model..."):
