@@ -16,7 +16,8 @@ MODEL_PATH = "emotion_classifier_inception.h5"
 # Download model if not present
 if not os.path.exists(MODEL_PATH):
     with st.spinner("Downloading model..."):
-        gdown.download(f"https://drive.google.com/uc?id={FILE_ID}", MODEL_PATH, quiet=False)
+        gdown.download("https://drive.google.com/uc?export=download&id=1-W3XEcLKsce_ULy6BMgEkFdqxIIUoOxk", MODEL_PATH, quiet=False)
+
 
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
