@@ -9,40 +9,21 @@ import time
 from io import BytesIO
 
 # ---- HELPER: Download large files from Google Drive (handles confirmation token) ----
-def download_file_from_google_drive(id, destination):
-    import requests
+#  Must be first Streamlit call
+st.set_page_config(page_title="Face Emotion Detection System", layout="centered")
 
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
+# Constants
+FILE_ID = "17iEc-3OtXclucyxpe-cLR1ePfquqDPRZ"
+MODEL_PATH = "emotion_classifier_inception.h5"
+img_height, img_width = 150, 150
 
-    response = session.get(URL, params={'id': id}, stream=True)
-    token = get_confirm_token(response)
+# Download model if not present
+if not os.path.exists(MODEL_PATH):
+    with st.spinner("Downloading model..."):
+        gdown.download(f"https://drive.google.com/uc?id={FILE_ID}", MODEL_PATH, quiet=False)
 
-    if token:
-        params = {'id': id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-
-    # Save the file temporarily
-    save_response_content(response, destination)
-
-    # Verify: Check if it starts with the HDF5 file signature (should start with 0x89 HDF)
-    with open(destination, 'rb') as f:
-        file_start = f.read(4)
-        if file_start != b'\x89HDF':
-            os.remove(destination)
-            raise ValueError("Downloaded file is not a valid HDF5 model. Likely a Google Drive warning page.")
-
-def get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            return value
-    return None
-
-def save_response_content(response, destination, chunk_size=32768):
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(chunk_size):
-            if chunk:
-                f.write(chunk)
+# Load the trained model
+model = tf.keras.models.load_model(MODEL_PATH)
 
 # ---- MODEL LOADING ----
 MODEL_PATH = "emotion_classifier_inception.h5"
