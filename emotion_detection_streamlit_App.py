@@ -7,8 +7,9 @@ import os
 import requests
 import time
 from io import BytesIO
+import gdown
 
-# ---- HELPER: Download large files from Google Drive (handles confirmation token) ----
+
 #  Must be first Streamlit call
 st.set_page_config(page_title="Face Emotion Detection System", layout="centered")
 
@@ -37,14 +38,6 @@ if not os.path.exists(MODEL_PATH):
         except Exception as e:
             st.error(f"Failed to download model: {e}")
             st.stop()
-
-# Try loading the model, catch errors related to corrupt/incomplete files
-try:
-    model = tf.keras.models.load_model(MODEL_PATH)
-except (OSError, IOError) as e:
-    st.error(f"Failed to load model file. It might be corrupted or incomplete.\n{e}")
-    st.stop()
-
 # ---- CONSTANTS ----
 IMG_HEIGHT, IMG_WIDTH = 224, 224
 class_labels = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprise']
