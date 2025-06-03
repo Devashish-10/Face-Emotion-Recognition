@@ -2,14 +2,19 @@ import streamlit as st
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-import cv2
 import os
 import requests
 from io import BytesIO
 
+# Conditionally import cv2 only if available (to avoid libGL error)
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+
 # ---- MODEL LOADING FROM GOOGLE DRIVE ----
 def download_model_from_gdrive(file_id, dest_path):
-    # Google Drive direct download URL format
     url = f"https://drive.google.com/uc?export=download&id={file_id}"
     response = requests.get(url)
     if response.status_code == 200:
@@ -63,25 +68,27 @@ with tab1:
         st.markdown(f"### Prediction: `{label}`")
 
 with tab2:
-    st.warning(" Webcam access works only in local mode. Streamlit Cloud does not support it.")
-    run = st.checkbox('Start Webcam')
-    FRAME_WINDOW = st.image([])
+    if not OPENCV_AVAILABLE:
+        st.warning("OpenCV is not available. Webcam access is disabled.")
+    else:
+        st.warning("Webcam access works only in local mode. Streamlit Cloud does not support it.")
+        run = st.checkbox('Start Webcam')
+        FRAME_WINDOW = st.image([])
 
-    if run:
-        camera = cv2.VideoCapture(0)
-        if not camera.isOpened():
-            st.error("Could not access webcam.")
-        else:
-            while run:
-                ret, frame = camera.read()
-                if not ret:
-                    st.error("Failed to read from webcam.")
-                    break
-                img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                pil_img = Image.fromarray(img_rgb)
-                label = predict_emotion(pil_img)
-                cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                FRAME_WINDOW.image(frame, channels="BGR")
-            camera.release()
-            cv2.destroyAllWindows()
-
+        if run:
+            camera = cv2.VideoCapture(0)
+            if not camera.isOpened():
+                st.error("Could not access webcam.")
+            else:
+                while run:
+                    ret, frame = camera.read()
+                    if not ret:
+                        st.error("Failed to read from webcam.")
+                        break
+                    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    pil_img = Image.fromarray(img_rgb)
+                    label = predict_emotion(pil_img)
+                    cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    FRAME_WINDOW.image(frame, channels="BGR")
+                camera.release()
+                cv2.destroyAllWindows()
